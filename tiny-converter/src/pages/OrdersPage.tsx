@@ -5,10 +5,11 @@ import { ColumnMapper, autoMapColumns } from "../components/ColumnMapper";
 import { CodeTableEditor } from "../components/CodeTableEditor";
 import { ResultsPanel } from "../components/ResultsPanel";
 import { ClientsSource } from "../components/ClientsSource";
-import { readWorkbookFile, sliceSheetFromHeaderRow, buildMultiSheetXlsxBlob, downloadBlob } from "../lib/xlsxIO";
+import { readWorkbookFile, sliceSheetFromHeaderRow } from "../lib/xlsxIO";
 import { convertOrders, ORDER_FIELDS, type ClientRecord } from "../lib/orderConverter";
 import { DEFAULT_SIZE_LETTERS } from "../lib/sizeRules";
-import type { ColumnMapping, WorkbookData, CodeTableEntry, ConversionResult } from "../lib/types";
+import { ORDER_COL } from "../lib/tinyFormats";
+import type { ColumnMapping, WorkbookData, CodeTableEntry, ConversionResult, CellValue } from "../lib/types";
 import { logConversion } from "../supabase/repositories";
 import { isSupabaseConfigured } from "../supabase/client";
 
@@ -75,10 +76,8 @@ export function OrdersPage() {
     }
   }
 
-  function handleDownload() {
-    if (!result) return;
-    const blob = buildMultiSheetXlsxBlob([{ name: "Tiny", headers: result.headers, rows: result.rows }]);
-    downloadBlob(blob, "pedidos-tiny.xlsx");
+  function orderGroupKey(row: CellValue[]): string {
+    return String(row[ORDER_COL["Número do pedido"]] ?? "");
   }
 
   return (
@@ -182,7 +181,13 @@ export function OrdersPage() {
       {result && (
         <div>
           <h2 className="mb-2 text-lg font-semibold text-gray-800">3. Resultado</h2>
-          <ResultsPanel result={result} onDownload={handleDownload} fileLabel="planilha de pedidos" />
+          <ResultsPanel
+            result={result}
+            fileLabel="planilha de pedidos"
+            sheetName="Tiny"
+            fileBaseName="pedidos-tiny"
+            groupKeyFn={orderGroupKey}
+          />
         </div>
       )}
     </div>

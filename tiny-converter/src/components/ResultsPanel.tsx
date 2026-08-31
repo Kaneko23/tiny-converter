@@ -1,9 +1,15 @@
+import { useMemo } from "react";
 import type { CellValue, ConversionResult } from "../lib/types";
+import { groupRows, buildXlsxPartsUnderLimit, downloadBlob } from "../lib/xlsxIO";
 
 interface Props {
   result: ConversionResult;
-  onDownload: () => void;
   fileLabel: string;
+  sheetName: string;
+  fileBaseName: string;
+  /** Chave que identifica um "grupo" (produto pai+variações, ou pedido) que nunca pode ser
+   * separado entre dois arquivos ao dividir por causa do limite de tamanho do Tiny (2 MB). */
+  groupKeyFn: (row: CellValue[]) => string;
 }
 
 function formatCell(v: CellValue): string {
@@ -12,12 +18,25 @@ function formatCell(v: CellValue): string {
   return String(v);
 }
 
-export function ResultsPanel({ result, onDownload, fileLabel }: Props) {
+export function ResultsPanel({ result, fileLabel, sheetName, fileBaseName, groupKeyFn }: Props) {
   const previewRows = result.rows.slice(0, 15);
   const previewCols = result.headers
     .map((h, i) => ({ h, i }))
     .filter(({ i }) => result.rows.some((r) => r[i] !== "" && r[i] !== null && r[i] !== undefined))
     .slice(0, 10);
+
+  const parts = useMemo(() => {
+    if (result.rows.length === 0) return [];
+    const groups = groupRows(result.rows, groupKeyFn);
+    return buildXlsxPartsUnderLimit(result.headers, groups, sheetName);
+  }, [result, groupKeyFn, sheetName]);
+
+  function handleDownloadPart(index: number) {
+    const blob = parts[index];
+    const filename =
+      parts.length > 1 ? `${fileBaseName}-parte${index + 1}-de-${parts.length}.xlsx` : `${fileBaseName}.xlsx`;
+    downloadBlob(blob, filename);
+  }
 
   return (
     <div className="space-y-4">
@@ -27,13 +46,31 @@ export function ResultsPanel({ result, onDownload, fileLabel }: Props) {
             <strong>{v}</strong> {k}
           </div>
         ))}
-        <button
-          onClick={onDownload}
-          disabled={result.rows.length === 0}
-          className="ml-auto rounded-md bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-40"
-        >
-          Baixar {fileLabel} (.xlsx)
-        </button>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {parts.length > 1 && (
+            <span className="text-xs text-amber-600">
+              o Tiny só aceita até ~2 MB por arquivo — dividido em {parts.length} partes
+            </span>
+          )}
+          {parts.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => handleDownloadPart(i)}
+              disabled={result.rows.length === 0}
+              className="rounded-md bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-40"
+            >
+              {parts.length > 1 ? `Baixar parte ${i + 1} de ${parts.length}` : `Baixar ${fileLabel} (.xlsx)`}
+            </button>
+          ))}
+          {parts.length === 0 && (
+            <button
+              disabled
+              className="rounded-md bg-brand-500 px-4 py-2 text-sm font-medium text-white opacity-40"
+            >
+              Baixar {fileLabel} (.xlsx)
+            </button>
+          )}
+        </div>
       </div>
 
       {result.warnings.length > 0 && (

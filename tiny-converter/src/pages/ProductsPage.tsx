@@ -4,7 +4,7 @@ import { SheetPicker } from "../components/SheetPicker";
 import { ColumnMapper, autoMapColumns } from "../components/ColumnMapper";
 import { CodeTableEditor } from "../components/CodeTableEditor";
 import { ResultsPanel } from "../components/ResultsPanel";
-import { readWorkbookFile, sliceSheetFromHeaderRow, buildMultiSheetXlsxBlob, downloadBlob } from "../lib/xlsxIO";
+import { readWorkbookFile, sliceSheetFromHeaderRow } from "../lib/xlsxIO";
 import {
   convertProducts,
   PRODUCT_FIELDS,
@@ -14,7 +14,7 @@ import {
 } from "../lib/productConverter";
 import { DEFAULT_SIZE_LETTERS } from "../lib/sizeRules";
 import { DEFAULT_NCM_ROWS, type NcmTableEntry } from "../lib/ncmRules";
-import type { ColumnMapping, WorkbookData, CodeTableEntry, ConversionResult } from "../lib/types";
+import type { ColumnMapping, WorkbookData, CodeTableEntry, ConversionResult, CellValue } from "../lib/types";
 import { isSupabaseConfigured } from "../supabase/client";
 import { saveProductCatalog, logConversion } from "../supabase/repositories";
 import { PRODUCT_COL } from "../lib/tinyFormats";
@@ -32,6 +32,10 @@ export function ProductsPage() {
     DEFAULT_SIZE_LETTERS.map((s) => ({ a: s.label, b: s.code }))
   );
   const [ncmRows, setNcmRows] = useState<{ a: string; b: string }[]>(DEFAULT_NCM_ROWS);
+  const [surchargeRows, setSurchargeRows] = useState<{ a: string; b: string }[]>([
+    { a: "G1", b: "10" },
+    { a: "G2", b: "10" },
+  ]);
   const [numericStep, setNumericStep] = useState(2);
   const [defaults, setDefaults] = useState<ProductConverterDefaults>(DEFAULT_PRODUCT_DEFAULTS);
   const [result, setResult] = useState<ConversionResult | null>(null);
@@ -78,6 +82,12 @@ export function ProductsPage() {
     .filter((r) => r.a && (!r.b || /\d/.test(r.b)))
     .map((r) => ({ tecido: r.a, ncm: r.b }));
 
+  const sizeSurcharge: Record<string, number> = Object.fromEntries(
+    surchargeRows
+      .filter((r) => r.a && r.b && !Number.isNaN(Number(r.b)))
+      .map((r) => [r.a.trim().toUpperCase(), Number(r.b)])
+  );
+
   function handleConvert() {
     if (!activeSheet) return;
     const res = convertProducts(
@@ -87,27 +97,17 @@ export function ProductsPage() {
       sizeLetters,
       defaults,
       numericStep,
-      ncmTable
+      ncmTable,
+      sizeSurcharge
     );
     setResult(res);
     setSaveMsg(null);
   }
 
-  function handleDownload() {
-    if (!result) return;
-    const blob = buildMultiSheetXlsxBlob([
-      { name: "Produtos Tiny", headers: result.headers, rows: result.rows },
-      {
-        name: "Leia-me",
-        headers: ["Notas"],
-        rows: [
-          [`Gerado pelo Conversor Tiny — Lei Atual Jeans`],
-          [`Total de linhas: ${result.rows.length}`],
-          [`Avisos: ${result.warnings.length}`],
-        ],
-      },
-    ]);
-    downloadBlob(blob, `produtos-tiny${collectionName ? `-${collectionName}` : ""}.xlsx`);
+  function productGroupKey(row: CellValue[]): string {
+    const pai = row[PRODUCT_COL["Código do pai"]];
+    if (pai !== null && pai !== undefined && String(pai) !== "") return String(pai);
+    return String(row[PRODUCT_COL["Código (SKU)"]] ?? "");
   }
 
   async function handleSaveCatalog() {
@@ -192,6 +192,14 @@ export function ProductsPage() {
               rows={sizeRows}
               onChange={setSizeRows}
             />
+            <CodeTableEditor
+              title="Acréscimo de preço por tamanho"
+              hint="Some esse valor (R$) ao preço do tamanho indicado — ex: G1 e G2 custam R$10 a mais. Deixe em branco/0 pros tamanhos sem acréscimo."
+              colA={{ key: "a", label: "Tamanho", placeholder: "G1" }}
+              colB={{ key: "b", label: "Acréscimo (R$)", placeholder: "10" }}
+              rows={surchargeRows}
+              onChange={setSurchargeRows}
+            />
           </div>
 
           <CodeTableEditor
@@ -247,7 +255,13 @@ export function ProductsPage() {
       {result && (
         <div>
           <h2 className="mb-2 text-lg font-semibold text-gray-800">3. Resultado</h2>
-          <ResultsPanel result={result} onDownload={handleDownload} fileLabel="planilha de produtos" />
+          <ResultsPanel
+            result={result}
+            fileLabel="planilha de produtos"
+            sheetName="Produtos Tiny"
+            fileBaseName={`produtos-tiny${collectionName ? `-${collectionName}` : ""}`}
+            groupKeyFn={productGroupKey}
+          />
           {isSupabaseConfigured && (
             <div className="mt-3 flex items-center gap-3">
               <button

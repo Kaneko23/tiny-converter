@@ -21,7 +21,16 @@ importação do Tiny já com:
 - uma linha "pai" por referência e uma linha "filha" por variação de
   cor × tamanho (SKU = referência + código da cor + código do tamanho);
 - a descrição de cada variação com o nome da cor quando aplicável;
-- o campo `Variações` no formato que o Tiny espera (`Cores:X||Tamanho:Y||`).
+- o campo `Variações` no formato que o Tiny espera (`Cores:X||Tamanho:Y||`);
+- **NCM automático por tecido**: uma tabela "Tecido → NCM" (igual à de
+  cores/tamanhos) preenche a Classificação Fiscal sozinha, tolerando
+  maiúscula/minúscula, acento e pequenas diferenças de grafia (ex: "TRIPLO"
+  casa com "TRIPLE"), mas sem arriscar trocar palavras com sentido diferente
+  (ex: nunca confunde "sem elastano" com "com elastano"). Tecido não
+  reconhecido cai no NCM padrão e gera aviso;
+- **Origem, CEST e acréscimo de preço por tamanho** configuráveis nos
+  valores padrão — dá pra, por exemplo, somar automaticamente um valor fixo
+  ao preço dos tamanhos G1/G2.
 
 ### 2. Pedidos
 
@@ -39,6 +48,21 @@ SKU). Quando a cor É parte do SKU, ela vem embutida na própria referência,
 como `2830/3` (referência `2830`, variante de cor `3`) — nesse caso o "/3"
 é usado para montar o código do SKU, e o número da variante aponta para a
 mesma tabela de cores. A ferramenta já trata os dois casos.
+
+**Cadastro de clientes**: além de enviar uma planilha de clientes, dá pra
+cadastrar um cliente na mão (botão "+ Cadastrar cliente manualmente"), com
+endereço, CEP, telefone, e-mail etc. Com o Supabase configurado, isso já
+salva na hora e a tela carrega os clientes salvos sozinha da próxima vez —
+sem precisar reenviar planilha nenhuma.
+
+### Limite de 2 MB do Tiny
+
+O Tiny só aceita arquivos de até ~2 MB por importação. Quando o resultado
+(produtos ou pedidos) passa desse tamanho, a ferramenta divide sozinha em
+duas ou mais partes — sempre mantendo um produto (pai + variações) ou um
+pedido (todos os itens) inteiro dentro do mesmo arquivo, nunca partido ao
+meio. Quando isso acontece, aparecem botões "Baixar parte 1 de N", "parte 2
+de N" etc. em vez de um único botão de download.
 
 ## Rodando localmente
 
@@ -136,11 +160,13 @@ MOSTRUARIO_PATH=/caminho/para/MOSTRUARIO_VERAO_27.xlsx npx tsx scripts/validate-
 
 ## Coisas para revisar / próximos passos
 
-- **Classificação fiscal (NCM) e CEST** não são preenchidos automaticamente
-  no cadastro de produtos — variam pela composição real do tecido, que não
-  dá para saber só pelo nome comercial (ex: "Rarita", "Kratos"). Preencha
-  no formulário de valores padrão ou peça para o setor fiscal revisar antes
-  de importar.
+- **NCM**: a tabela "Tecido → NCM" já vem com os dados fornecidos, mas
+  tecidos novos ou com nome muito diferente do cadastrado (ex: "OASIS",
+  "RAZZIS", "FILIPE") não são reconhecidos e caem no NCM padrão com aviso —
+  vale ir completando a tabela conforme aparecerem.
+- **CSOSN** não é preenchido pela ferramenta: a planilha de importação de
+  produtos do Tiny não tem essa coluna — o CSOSN é configurado dentro do
+  próprio Tiny (na regra fiscal), não no arquivo de importação.
 - **Preço nos pedidos**: hoje o preço vem direto da coluna "Valor Unit." da
   planilha de pedidos. Se quiser, dá para ligar a conferência automática
   contra o catálogo salvo no Supabase (a função `findProductPriceBySku` já

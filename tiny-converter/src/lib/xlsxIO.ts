@@ -86,6 +86,77 @@ export function sliceSheetFromHeaderRow(sheet: SheetData, headerRowNumber: numbe
   return { sheetName: sheet.sheetName, headers, rows };
 }
 
+/** Tamanho máximo aceito pelo Tiny num único arquivo de importação. */
+export const MAX_TINY_IMPORT_BYTES = 1.9 * 1024 * 1024; // 1,9 MB — um pouco abaixo do limite de 2 MB do Tiny, de margem.
+
+/**
+ * Agrupa as linhas mantendo juntas as que pertencem ao mesmo "grupo" (ex: produto
+ * pai + suas variações, ou todos os itens de um mesmo pedido) — pra nunca separar
+ * um grupo em arquivos diferentes ao dividir por causa do limite de tamanho do Tiny.
+ */
+export function groupRows(rows: CellValue[][], groupKeyFn: (row: CellValue[]) => string): CellValue[][][] {
+  const order: string[] = [];
+  const map = new Map<string, CellValue[][]>();
+  for (const row of rows) {
+    const key = groupKeyFn(row);
+    if (!map.has(key)) {
+      map.set(key, []);
+      order.push(key);
+    }
+    map.get(key)!.push(row);
+  }
+  return order.map((k) => map.get(k)!);
+}
+
+/**
+ * Divide os grupos de linhas em uma ou mais planilhas .xlsx, cada uma abaixo do
+ * limite de tamanho do Tiny — sem nunca quebrar um grupo (produto pai+variações,
+ * ou pedido) ao meio entre dois arquivos.
+ */
+export function buildXlsxPartsUnderLimit(
+  headers: string[],
+  groups: CellValue[][][],
+  sheetName: string,
+  maxBytes: number = MAX_TINY_IMPORT_BYTES
+): Blob[] {
+  const allRows = groups.flat();
+  if (allRows.length === 0) return [buildXlsxBlob(headers, [], sheetName)];
+
+  const fullBlob = buildXlsxBlob(headers, allRows, sheetName);
+  if (fullBlob.size <= maxBytes || groups.length <= 1) return [fullBlob];
+
+  // estimativa grosseira de bytes/linha a partir do arquivo inteiro, com margem de segurança
+  const approxBytesPerRow = fullBlob.size / allRows.length;
+  const targetRowsPerPart = Math.max(1, Math.floor((maxBytes * 0.85) / approxBytesPerRow));
+
+  const parts: CellValue[][][] = [];
+  let current: CellValue[][] = [];
+  for (const g of groups) {
+    if (current.length > 0 && current.length + g.length > targetRowsPerPart) {
+      parts.push(current);
+      current = [];
+    }
+    current.push(...g);
+  }
+  if (current.length) parts.push(current);
+
+  // confere de verdade cada parte — se alguma ainda estourar (estimativa errada), quebra em duas e confere de novo
+  const blobs: Blob[] = [];
+  const stack = [...parts].reverse();
+  while (stack.length) {
+    const part = stack.pop()!;
+    const blob = buildXlsxBlob(headers, part, sheetName);
+    if (blob.size <= maxBytes || part.length <= 1) {
+      blobs.push(blob);
+    } else {
+      const mid = Math.floor(part.length / 2) || 1;
+      stack.push(part.slice(mid));
+      stack.push(part.slice(0, mid));
+    }
+  }
+  return blobs;
+}
+
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

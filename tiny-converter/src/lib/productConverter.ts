@@ -86,6 +86,10 @@ function getCell(row: CellValue[], mapping: ColumnMapping, field: string): CellV
   return row[idx] ?? null;
 }
 
+function surchargeForSize(sizeLabel: string, sizeSurcharge: Record<string, number>): number {
+  return sizeSurcharge[sizeLabel.trim().toUpperCase()] ?? 0;
+}
+
 export function convertProducts(
   rows: CellValue[][],
   mapping: ColumnMapping,
@@ -93,7 +97,8 @@ export function convertProducts(
   sizeLetters: SizeLetterEntry[],
   defaults: ProductConverterDefaults,
   numericStep = 2,
-  ncmTable: NcmTableEntry[] = []
+  ncmTable: NcmTableEntry[] = [],
+  sizeSurcharge: Record<string, number> = {}
 ): ConversionResult {
   const warnings: ConversionWarning[] = [];
   const outRows: CellValue[][] = [];
@@ -191,13 +196,16 @@ export function convertProducts(
 
     const descBase = descricaoRaw.toUpperCase();
     const nVariants = (colors.length || 1) * sizes.length;
+    // produto sem variação (um tamanho só) -> a linha "pai" é a própria SKU vendável,
+    // então já aplica o acréscimo do tamanho nela também.
+    const precoPai = nVariants <= 1 && sizes.length === 1 ? preco + surchargeForSize(sizes[0].label, sizeSurcharge) : preco;
 
     const parent = emptyProductRow();
     parent[PRODUCT_COL["Código (SKU)"]] = refFinal;
     parent[PRODUCT_COL["Descrição"]] = descBase;
     parent[PRODUCT_COL["Unidade"]] = defaults.unidade;
     parent[PRODUCT_COL["Origem"]] = defaults.origem;
-    parent[PRODUCT_COL["Preço"]] = preco;
+    parent[PRODUCT_COL["Preço"]] = precoPai;
     parent[PRODUCT_COL["Valor IPI fixo"]] = 0;
     parent[PRODUCT_COL["Observações"]] = observacoes;
     parent[PRODUCT_COL["Situação"]] = defaults.situacao;
@@ -236,12 +244,13 @@ export function convertProducts(
     for (const color of colorList) {
       for (const size of sizes) {
         const skuStr = `${refFinal}${color.code}${size.code}`;
+        const precoFilho = preco + surchargeForSize(size.label, sizeSurcharge);
         const child = emptyProductRow();
         child[PRODUCT_COL["Código (SKU)"]] = skuStr;
         child[PRODUCT_COL["Descrição"]] = color.name ? `${descBase} ${color.name}` : descBase;
         child[PRODUCT_COL["Unidade"]] = defaults.unidade;
         child[PRODUCT_COL["Origem"]] = defaults.origem;
-        child[PRODUCT_COL["Preço"]] = preco;
+        child[PRODUCT_COL["Preço"]] = precoFilho;
         child[PRODUCT_COL["Valor IPI fixo"]] = 0;
         child[PRODUCT_COL["Observações"]] = observacoes;
         child[PRODUCT_COL["Situação"]] = defaults.situacao;
