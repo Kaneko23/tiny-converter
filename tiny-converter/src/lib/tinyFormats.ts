@@ -1,0 +1,136 @@
+// Cabeçalhos EXATOS esperados pelo Tiny ERP nas planilhas de importação.
+// Baseado nos arquivos reais fornecidos pela Lei Atual Jeans
+// ("Planilha para Cadastro de Produtos no Tiny" e "Conversor Tiny Lei Atual").
+import type { CellValue } from "./types";
+
+export const TINY_PRODUCT_HEADERS: string[] = [
+  "ID",
+  "Código (SKU)",
+  "Descrição",
+  "Unidade",
+  "Classificação fiscal",
+  "Origem",
+  "Preço",
+  "Valor IPI fixo",
+  "Observações",
+  "Situação",
+  "Estoque",
+  "Preço de custo",
+  "Cód do Fornecedor",
+  "Fornecedor",
+  "Localização",
+  "Estoque máximo",
+  "Estoque mínimo",
+  "Peso líquido (Kg)",
+  "Peso bruto (Kg)",
+  "GTIN/EAN",
+  "GTIN/EAN tributável",
+  "Descrição complementar",
+  "CEST",
+  "Código de Enquadramento IPI",
+  "Formato embalagem",
+  "Largura embalagem",
+  "Altura embalagem",
+  "Comprimento embalagem",
+  "Diâmetro embalagem",
+  "Tipo do produto",
+  "URL imagem 1",
+  "URL imagem 2",
+  "URL imagem 3",
+  "URL imagem 4",
+  "URL imagem 5",
+  "URL imagem 6",
+  "Categoria",
+  "Código do pai",
+  "Variações",
+  "Marca",
+  "Garantia",
+  "Sob encomenda",
+  "Preço promocional",
+  "URL imagem externa 1",
+  "URL imagem externa 2",
+  "URL imagem externa 3",
+  "URL imagem externa 4",
+  "URL imagem externa 5",
+  "URL imagem externa 6",
+  "Link do vídeo",
+  "Título SEO",
+  "Descrição SEO",
+  "Palavras chave SEO",
+  "Slug",
+  "Dias para preparação",
+  "Controlar lotes",
+  "Unidade por caixa",
+  "URL imagem externa 7",
+  "URL imagem externa 8",
+  "URL imagem externa 9",
+  "URL imagem externa 10",
+  "Markup",
+  "Permitir inclusão nas vendas",
+  "EX TIPI",
+];
+
+export const TINY_ORDER_HEADERS: string[] = [
+  "ID",
+  "Número do pedido",
+  "Data",
+  "Data prevista",
+  "ID contato",
+  "Nome do contato*",
+  "Tipo de Pessoa",
+  "CPF/CNPJ",
+  "RG/IE",
+  "CEP",
+  "Município",
+  "UF",
+  "Endereço",
+  "Endereço Nro",
+  "Complemento",
+  "Bairro",
+  "Fone",
+  "Celular",
+  "e-mail",
+  "Desconto pedido (% ou valor)",
+  "Frete",
+  "Observações",
+  "Situação",
+  "ID produto",
+  "Descrição",
+  "Quantidade",
+  "Valor unitário",
+  "Desconto item %",
+  "Código de rastreamento",
+  "Número da ordem de compra",
+  "Vendedor",
+  "Despesas",
+  "Desconto do pedido",
+  "Frete pedido rateado",
+  "Despesas pedido rateado",
+  "Destinatário",
+  "CPF/CNPJ entrega",
+  "CEP entrega",
+  "Município entrega",
+  "UF entrega",
+  "Endereço entrega",
+  "Endereço Nro entrega",
+  "Complemento entrega",
+  "Bairro entrega",
+  "Fone entrega",
+  "Código (SKU)",
+];
+
+export function emptyProductRow(): CellValue[] {
+  return new Array(TINY_PRODUCT_HEADERS.length).fill("");
+}
+
+export function emptyOrderRow(): CellValue[] {
+  return new Array(TINY_ORDER_HEADERS.length).fill("");
+}
+
+export const PRODUCT_COL = Object.fromEntries(
+  TINY_PRODUCT_HEADERS.map((h, i) => [h, i])
+) as Record<string, number>;
+
+export const ORDER_COL = Object.fromEntries(
+  TINY_ORDER_HEADERS.map((h, i) => [h, i])
+) as Record<string, number>;
