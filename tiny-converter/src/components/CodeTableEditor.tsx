@@ -35,13 +35,17 @@ export function CodeTableEditor({ title, hint, colA, colB, rows, onChange }: Pro
   }
 
   function applyPaste() {
-    // aceita linhas "código; nome", "código - nome", "código,nome" ou "código<TAB>nome"
+    // aceita linhas "código; nome", "código - nome", "código,nome" ou "código<TAB>nome".
+    // Quando a linha tem TAB (colada direto do Excel), separamos só por TAB —
+    // assim um nome com vírgula dentro (ex: "NEW CETIN, PRETO Ñ DESB") não quebra ao meio.
     const parsed = pasteText
       .split("\n")
       .map((l) => l.trim())
       .filter(Boolean)
       .map((l) => {
-        const parts = l.split(/\t|;|,| - /).map((p) => p.trim());
+        const parts = l.includes("\t")
+          ? l.split("\t").map((p) => p.trim())
+          : l.split(/;|,| - /).map((p) => p.trim());
         return { a: parts[0] ?? "", b: parts.slice(1).join(" ") ?? "" };
       })
       .filter((r) => r.a);

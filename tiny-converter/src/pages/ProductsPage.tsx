@@ -9,9 +9,11 @@ import {
   convertProducts,
   PRODUCT_FIELDS,
   DEFAULT_PRODUCT_DEFAULTS,
+  ORIGEM_OPTIONS,
   type ProductConverterDefaults,
 } from "../lib/productConverter";
 import { DEFAULT_SIZE_LETTERS } from "../lib/sizeRules";
+import { DEFAULT_NCM_ROWS, type NcmTableEntry } from "../lib/ncmRules";
 import type { ColumnMapping, WorkbookData, CodeTableEntry, ConversionResult } from "../lib/types";
 import { isSupabaseConfigured } from "../supabase/client";
 import { saveProductCatalog, logConversion } from "../supabase/repositories";
@@ -29,6 +31,7 @@ export function ProductsPage() {
   const [sizeRows, setSizeRows] = useState<{ a: string; b: string }[]>(
     DEFAULT_SIZE_LETTERS.map((s) => ({ a: s.label, b: s.code }))
   );
+  const [ncmRows, setNcmRows] = useState<{ a: string; b: string }[]>(DEFAULT_NCM_ROWS);
   const [numericStep, setNumericStep] = useState(2);
   const [defaults, setDefaults] = useState<ProductConverterDefaults>(DEFAULT_PRODUCT_DEFAULTS);
   const [result, setResult] = useState<ConversionResult | null>(null);
@@ -69,6 +72,12 @@ export function ProductsPage() {
     .filter((r) => r.a && r.b)
     .map((r) => ({ label: r.a, code: r.b.padStart(2, "0") }));
 
+  // linhas de cabeçalho coladas junto com a lista (ex: "CANATIBA DENIM" / "ncm") não têm
+  // dígito nenhum na 2ª coluna — descartamos aqui pra não sujar a correspondência.
+  const ncmTable: NcmTableEntry[] = ncmRows
+    .filter((r) => r.a && (!r.b || /\d/.test(r.b)))
+    .map((r) => ({ tecido: r.a, ncm: r.b }));
+
   function handleConvert() {
     if (!activeSheet) return;
     const res = convertProducts(
@@ -77,7 +86,8 @@ export function ProductsPage() {
       colorTable,
       sizeLetters,
       defaults,
-      numericStep
+      numericStep,
+      ncmTable
     );
     setResult(res);
     setSaveMsg(null);
@@ -184,6 +194,15 @@ export function ProductsPage() {
             />
           </div>
 
+          <CodeTableEditor
+            title="Tabela de NCM por tecido"
+            hint='Nome do tecido (coluna "Tecido") -> NCM. A busca ignora maiúscula/minúscula, acentos e pequenas diferenças de grafia (ex: "TRIPLO" casa com "TRIPLE"), mas nunca troca uma palavra por outra bem diferente — se o tecido não for reconhecido, o NCM padrão é usado e um aviso aparece no resultado. Deixe o NCM em branco pra um tecido que ainda não foi classificado.'
+            colA={{ key: "a", label: "Tecido", placeholder: "ex: XHAKA" }}
+            colB={{ key: "b", label: "NCM", placeholder: "ex: 52094210 (deixe em branco se ainda não souber)" }}
+            rows={ncmRows}
+            onChange={setNcmRows}
+          />
+
           <details className="rounded-lg border border-gray-200 bg-white p-4">
             <summary className="cursor-pointer text-sm font-medium text-gray-700">
               Valores padrão para os campos do Tiny (Unidade, Origem, Marca, NCM, CEST, peso, embalagem...)
@@ -193,9 +212,18 @@ export function ProductsPage() {
               <LabeledInput label="Unidade" value={defaults.unidade} onChange={(v) => setDefaults({ ...defaults, unidade: v })} />
               <LabeledInput label="Situação" value={defaults.situacao} onChange={(v) => setDefaults({ ...defaults, situacao: v })} />
               <LabeledInput label="Marca" value={defaults.marca} onChange={(v) => setDefaults({ ...defaults, marca: v })} />
-              <LabeledInput label="Origem" value={defaults.origem} onChange={(v) => setDefaults({ ...defaults, origem: v })} />
-              <LabeledInput label="Classificação fiscal (NCM)" value={defaults.ncm} onChange={(v) => setDefaults({ ...defaults, ncm: v })} />
-              <LabeledInput label="CEST" value={defaults.cest} onChange={(v) => setDefaults({ ...defaults, cest: v })} />
+              <LabeledSelect
+                label="Origem"
+                value={defaults.origem}
+                options={ORIGEM_OPTIONS}
+                onChange={(v) => setDefaults({ ...defaults, origem: v })}
+              />
+              <LabeledInput
+                label="NCM padrão (usado só quando o tecido não é encontrado na tabela acima)"
+                value={defaults.ncm}
+                onChange={(v) => setDefaults({ ...defaults, ncm: v })}
+              />
+              <LabeledInput label="CEST (padrão, igual pra todos os produtos)" value={defaults.cest} onChange={(v) => setDefaults({ ...defaults, cest: v })} />
               <LabeledInput label="Preço padrão (quando a planilha não tem preço)" type="number" value={defaults.precoPadrao} onChange={(v) => setDefaults({ ...defaults, precoPadrao: Number(v) || 0 })} />
               <LabeledInput label="Peso líquido (Kg)" type="number" value={defaults.pesoLiquido} onChange={(v) => setDefaults({ ...defaults, pesoLiquido: Number(v) || 0 })} />
               <LabeledInput label="Peso bruto (Kg)" type="number" value={defaults.pesoBruto} onChange={(v) => setDefaults({ ...defaults, pesoBruto: Number(v) || 0 })} />
@@ -258,6 +286,35 @@ function LabeledInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
+    </label>
+  );
+}
+
+function LabeledSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="text-sm sm:col-span-3">
+      <div className="mb-1 text-gray-500">{label}</div>
+      <select
+        className="w-full rounded-md border border-gray-300 px-2 py-1"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }

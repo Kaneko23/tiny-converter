@@ -9,6 +9,7 @@ import type {
 import { TINY_PRODUCT_HEADERS, PRODUCT_COL, emptyProductRow } from "./tinyFormats";
 import { parseGradeRange } from "./sizeRules";
 import { extractColorCodesFromText, lookupColorName } from "./colorRules";
+import { lookupNcm, type NcmTableEntry } from "./ncmRules";
 
 /** Campos que o usuário liga às colunas da planilha de origem (Mostruário). */
 export const PRODUCT_FIELDS = [
@@ -45,10 +46,22 @@ export interface ProductConverterDefaults {
   precoPadrao: number;
 }
 
+export const ORIGEM_OPTIONS: string[] = [
+  "0 - Nacional, exceto as indicadas nos códigos 3 a 5",
+  "1 - Estrangeira - Importação direta, exceto a indicada no código 6",
+  "2 - Estrangeira - Adquirida no mercado interno, exceto a indicada no código 7",
+  "3 - Nacional, mercadoria ou bem com Conteúdo de Importação superior a 40% e inferior ou igual a 70%",
+  "4 - Nacional, cuja produção tenha sido feita em conformidade com os processos produtivos básicos",
+  "5 - Nacional, mercadoria ou bem com Conteúdo de Importação inferior ou igual a 40%",
+  "6 - Estrangeira - Importação direta, sem similar nacional, constante em lista da CAMEX",
+  "7 - Estrangeira - Adquirida no mercado interno, sem similar nacional, constante em lista da CAMEX",
+  "8 - Nacional, mercadoria ou bem com Conteúdo de Importação superior a 70%",
+];
+
 export const DEFAULT_PRODUCT_DEFAULTS: ProductConverterDefaults = {
   unidade: "Pç",
-  origem: "0 - Nacional, exceto as indicadas nos códigos 3 a 5",
-  cest: "",
+  origem: ORIGEM_OPTIONS[0],
+  cest: "28.039.00",
   ncm: "",
   marca: "",
   situacao: "Ativo",
@@ -79,7 +92,8 @@ export function convertProducts(
   colorTable: CodeTableEntry[],
   sizeLetters: SizeLetterEntry[],
   defaults: ProductConverterDefaults,
-  numericStep = 2
+  numericStep = 2,
+  ncmTable: NcmTableEntry[] = []
 ): ConversionResult {
   const warnings: ConversionWarning[] = [];
   const outRows: CellValue[][] = [];
@@ -144,6 +158,31 @@ export function convertProducts(
     ].filter(Boolean);
     const observacoes = obsParts.join(" | ");
 
+    // ---- NCM pelo tecido (tabela "Tecido -> NCM", com correspondência aproximada) ----
+    let ncm = defaults.ncm;
+    if (tecido) {
+      const match = lookupNcm(tecido, ncmTable);
+      if (!match) {
+        warnings.push({
+          rowIndex: rowNum,
+          message: `"${descricaoRaw}": tecido "${tecido}" não encontrado na tabela de NCM — usando o NCM padrão. Confira antes de importar.`,
+        });
+      } else if (!match.ncm) {
+        warnings.push({
+          rowIndex: rowNum,
+          message: `"${descricaoRaw}": tecido "${tecido}" está na tabela de NCM mas sem código cadastrado — usando o NCM padrão.`,
+        });
+      } else {
+        ncm = match.ncm;
+        if (!match.exact) {
+          warnings.push({
+            rowIndex: rowNum,
+            message: `"${descricaoRaw}": tecido "${tecido}" reconhecido como "${match.matchedTecido}" (correspondência aproximada) — NCM ${match.ncm}, confira se está certo.`,
+          });
+        }
+      }
+    }
+
     const precoCell = getCell(row, mapping, "preco");
     const preco =
       precoCell !== null && precoCell !== undefined && cellToString(precoCell) !== ""
@@ -174,7 +213,7 @@ export function convertProducts(
     parent[PRODUCT_COL["Altura embalagem"]] = defaults.altura;
     parent[PRODUCT_COL["Comprimento embalagem"]] = defaults.comprimento;
     parent[PRODUCT_COL["Diâmetro embalagem"]] = defaults.diametro;
-    parent[PRODUCT_COL["Classificação fiscal"]] = defaults.ncm;
+    parent[PRODUCT_COL["Classificação fiscal"]] = ncm;
     parent[PRODUCT_COL["Tipo do produto"]] = nVariants > 1 ? "V" : "S";
     parent[PRODUCT_COL["Marca"]] = defaults.marca;
     parent[PRODUCT_COL["Sob encomenda"]] = "Não";
@@ -218,7 +257,7 @@ export function convertProducts(
         child[PRODUCT_COL["Altura embalagem"]] = defaults.altura;
         child[PRODUCT_COL["Comprimento embalagem"]] = defaults.comprimento;
         child[PRODUCT_COL["Diâmetro embalagem"]] = defaults.diametro;
-        child[PRODUCT_COL["Classificação fiscal"]] = defaults.ncm;
+        child[PRODUCT_COL["Classificação fiscal"]] = ncm;
         child[PRODUCT_COL["Tipo do produto"]] = "S";
         child[PRODUCT_COL["Código do pai"]] = refFinal;
         child[PRODUCT_COL["Variações"]] = color.name

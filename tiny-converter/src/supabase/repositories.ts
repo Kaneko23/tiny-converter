@@ -92,7 +92,9 @@ export async function listClients(): Promise<ClientRecord[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("clients")
-    .select("nome_fantasia, razao_social, cnpj_ou_cpf, ie")
+    .select(
+      "nome_fantasia, razao_social, cnpj_ou_cpf, ie, endereco, cidade, bairro, uf, cep, email, telefone, contato"
+    )
     .order("nome_fantasia", { ascending: true });
   if (error) throw error;
   return (data ?? []).map((r) => ({
@@ -100,6 +102,14 @@ export async function listClients(): Promise<ClientRecord[]> {
     razaoSocial: r.razao_social ?? undefined,
     cnpjOuCpf: r.cnpj_ou_cpf ?? undefined,
     ie: r.ie ?? undefined,
+    endereco: r.endereco ?? undefined,
+    cidade: r.cidade ?? undefined,
+    bairro: r.bairro ?? undefined,
+    uf: r.uf ?? undefined,
+    cep: r.cep ?? undefined,
+    email: r.email ?? undefined,
+    telefone: r.telefone ?? undefined,
+    contato: r.contato ?? undefined,
   }));
 }
 

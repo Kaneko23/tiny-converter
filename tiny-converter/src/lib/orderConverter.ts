@@ -32,6 +32,14 @@ export interface ClientRecord {
   razaoSocial?: string;
   cnpjOuCpf?: string;
   ie?: string;
+  endereco?: string;
+  cidade?: string;
+  bairro?: string;
+  uf?: string;
+  cep?: string;
+  email?: string;
+  telefone?: string;
+  contato?: string;
 }
 
 export interface OrderConverterOptions {
@@ -192,9 +200,23 @@ export function convertOrders(
     let tipoPessoa = "";
     let cpfCnpj = "";
     let ie = "";
+    let endereco = "";
+    let cidade = "";
+    let bairro = "";
+    let uf = "";
+    let cep = "";
+    let telefone = "";
+    let email = "";
     if (client) {
       cpfCnpj = client.cnpjOuCpf ?? "";
       ie = client.ie ?? "";
+      endereco = client.endereco ?? "";
+      cidade = client.cidade ?? "";
+      bairro = client.bairro ?? "";
+      uf = client.uf ?? "";
+      cep = client.cep ?? "";
+      telefone = client.telefone ?? "";
+      email = client.email ?? "";
       const digits = digitsOnly(cpfCnpj);
       tipoPessoa = digits.length > 11 ? "J" : digits.length > 0 ? "F" : "";
     } else {
@@ -243,6 +265,13 @@ export function convertOrders(
     out[ORDER_COL["Tipo de Pessoa"]] = tipoPessoa;
     out[ORDER_COL["CPF/CNPJ"]] = cpfCnpj;
     out[ORDER_COL["RG/IE"]] = ie;
+    out[ORDER_COL["CEP"]] = cep;
+    out[ORDER_COL["Município"]] = cidade;
+    out[ORDER_COL["UF"]] = uf;
+    out[ORDER_COL["Endereço"]] = endereco;
+    out[ORDER_COL["Bairro"]] = bairro;
+    out[ORDER_COL["Fone"]] = telefone;
+    out[ORDER_COL["e-mail"]] = email;
     out[ORDER_COL["Observações"]] = observacoes;
     out[ORDER_COL["Situação"]] = "Aberto";
     out[ORDER_COL["Descrição"]] = descricaoFinal;

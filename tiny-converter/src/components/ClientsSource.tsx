@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FileDropzone } from "./FileDropzone";
 import { SheetPicker } from "./SheetPicker";
 import { ColumnMapper, autoMapColumns } from "./ColumnMapper";
@@ -33,6 +33,21 @@ interface Props {
   onClientsChange: (clients: ClientRecord[]) => void;
 }
 
+const EMPTY_DRAFT: ClientRecord = {
+  nomeFantasia: "",
+  razaoSocial: "",
+  cnpjOuCpf: "",
+  ie: "",
+  endereco: "",
+  cidade: "",
+  bairro: "",
+  uf: "",
+  cep: "",
+  email: "",
+  telefone: "",
+  contato: "",
+};
+
 export function ClientsSource({ clients, onClientsChange }: Props) {
   const [workbook, setWorkbook] = useState<WorkbookData | null>(null);
   const [sheetIndex, setSheetIndex] = useState(0);
@@ -41,6 +56,29 @@ export function ClientsSource({ clients, onClientsChange }: Props) {
   const [loadingDb, setLoadingDb] = useState(false);
   const [savingDb, setSavingDb] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [draft, setDraft] = useState<ClientRecord>(EMPTY_DRAFT);
+  const [addingClient, setAddingClient] = useState(false);
+  const [addMsg, setAddMsg] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+
+  // Com Supabase configurado, já puxa os clientes salvos assim que a tela abre —
+  // assim o próximo pedido já reconhece o cliente sem precisar clicar em nada.
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await listClients();
+        if (!cancelled && list.length) onClientsChange(list);
+      } catch {
+        // silencioso — se falhar, a pessoa ainda pode carregar manualmente pelo botão
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const activeSheet = useMemo(() => {
     if (!workbook) return null;
@@ -71,10 +109,52 @@ export function ClientsSource({ clients, onClientsChange }: Props) {
         razaoSocial: get("razaoSocial"),
         cnpjOuCpf: get("cnpjOuCpf"),
         ie: get("ie"),
+        endereco: get("endereco"),
+        cidade: get("cidade"),
+        bairro: get("bairro"),
+        uf: get("uf"),
+        cep: get("cep"),
+        email: get("email"),
+        telefone: get("telefone"),
+        contato: get("contato"),
       });
     }
     onClientsChange(list);
     setMsg(`${list.length} clientes carregados da planilha.`);
+  }
+
+  async function handleAddClient() {
+    const nomeFantasia = draft.nomeFantasia.trim();
+    if (!nomeFantasia) {
+      setAddMsg("Preencha ao menos o nome (fantasia) do cliente.");
+      return;
+    }
+    const record: ClientRecord = { ...draft, nomeFantasia };
+    setAddingClient(true);
+    setAddMsg(null);
+    try {
+      if (isSupabaseConfigured) {
+        await upsertClients([record]);
+      }
+      const key = nomeFantasia.toLowerCase();
+      const idx = clients.findIndex((c) => c.nomeFantasia.trim().toLowerCase() === key);
+      const next = idx >= 0 ? clients.map((c, i) => (i === idx ? record : c)) : [...clients, record];
+      onClientsChange(next);
+      setDraft(EMPTY_DRAFT);
+      setAddMsg(
+        isSupabaseConfigured
+          ? `Cliente "${nomeFantasia}" salvo no Supabase.`
+          : `Cliente "${nomeFantasia}" adicionado (só nesta sessão — configure o Supabase para salvar de vez).`
+      );
+    } catch (e) {
+      setAddMsg(`Erro ao salvar: ${(e as Error).message}`);
+    } finally {
+      setAddingClient(false);
+    }
+  }
+
+  function handleRemoveClient(index: number) {
+    onClientsChange(clients.filter((_, i) => i !== index));
   }
 
   async function loadFromDb() {
@@ -136,18 +216,81 @@ export function ClientsSource({ clients, onClientsChange }: Props) {
         <span className="text-xs text-gray-400">{clients.length} carregados</span>
       </div>
       <p className="text-xs text-gray-400">
-        Usado para preencher Tipo de Pessoa, CPF/CNPJ e RG/IE a partir do nome do cliente no pedido.
+        Usado para preencher Tipo de Pessoa, CPF/CNPJ, RG/IE e o endereço a partir do nome do cliente
+        no pedido. {isSupabaseConfigured ? "Com o Supabase configurado, isso já fica salvo pro próximo pedido reconhecer sozinho." : ""}{" "}
         Se um cliente não for encontrado, essas colunas ficam em branco e um aviso aparece no resultado.
       </p>
 
-      {isSupabaseConfigured && (
+      <div className="flex flex-wrap gap-2">
+        {isSupabaseConfigured && (
+          <button
+            onClick={loadFromDb}
+            disabled={loadingDb}
+            className="rounded-md border border-brand-200 px-3 py-1 text-sm text-brand-600 hover:bg-brand-50 disabled:opacity-50"
+          >
+            {loadingDb ? "Carregando..." : "Recarregar clientes salvos no Supabase"}
+          </button>
+        )}
         <button
-          onClick={loadFromDb}
-          disabled={loadingDb}
-          className="rounded-md border border-brand-200 px-3 py-1 text-sm text-brand-600 hover:bg-brand-50 disabled:opacity-50"
+          onClick={() => setFormOpen((v) => !v)}
+          className="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-600 hover:bg-gray-50"
         >
-          {loadingDb ? "Carregando..." : "Carregar clientes salvos no Supabase"}
+          {formOpen ? "Fechar cadastro" : "+ Cadastrar cliente manualmente"}
         </button>
+      </div>
+
+      {formOpen && (
+        <div className="space-y-2 rounded-md bg-gray-50 p-3">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <ClientField label="Nome (fantasia)*" value={draft.nomeFantasia} onChange={(v) => setDraft({ ...draft, nomeFantasia: v })} />
+            <ClientField label="Razão Social" value={draft.razaoSocial ?? ""} onChange={(v) => setDraft({ ...draft, razaoSocial: v })} />
+            <ClientField label="CNPJ / CPF" value={draft.cnpjOuCpf ?? ""} onChange={(v) => setDraft({ ...draft, cnpjOuCpf: v })} />
+            <ClientField label="Insc. Estadual / RG" value={draft.ie ?? ""} onChange={(v) => setDraft({ ...draft, ie: v })} />
+            <ClientField label="Endereço" value={draft.endereco ?? ""} onChange={(v) => setDraft({ ...draft, endereco: v })} />
+            <ClientField label="Cidade" value={draft.cidade ?? ""} onChange={(v) => setDraft({ ...draft, cidade: v })} />
+            <ClientField label="Bairro" value={draft.bairro ?? ""} onChange={(v) => setDraft({ ...draft, bairro: v })} />
+            <ClientField label="UF" value={draft.uf ?? ""} onChange={(v) => setDraft({ ...draft, uf: v })} />
+            <ClientField label="CEP" value={draft.cep ?? ""} onChange={(v) => setDraft({ ...draft, cep: v })} />
+            <ClientField label="E-mail" value={draft.email ?? ""} onChange={(v) => setDraft({ ...draft, email: v })} />
+            <ClientField label="Telefone" value={draft.telefone ?? ""} onChange={(v) => setDraft({ ...draft, telefone: v })} />
+            <ClientField label="Contato" value={draft.contato ?? ""} onChange={(v) => setDraft({ ...draft, contato: v })} />
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleAddClient}
+              disabled={addingClient}
+              className="rounded-md bg-brand-500 px-3 py-1.5 text-sm text-white hover:bg-brand-600 disabled:opacity-50"
+            >
+              {addingClient ? "Salvando..." : isSupabaseConfigured ? "Salvar cliente no Supabase" : "Adicionar cliente"}
+            </button>
+            {addMsg && <span className="text-xs text-gray-500">{addMsg}</span>}
+          </div>
+        </div>
+      )}
+
+      {clients.length > 0 && (
+        <div className="max-h-40 overflow-y-auto rounded-md border border-gray-100">
+          <table className="w-full text-xs">
+            <tbody>
+              {clients.map((c, i) => (
+                <tr key={`${i}-${c.nomeFantasia}`} className="border-t border-gray-100 first:border-t-0">
+                  <td className="px-2 py-1 font-medium text-gray-700">{c.nomeFantasia}</td>
+                  <td className="px-2 py-1 text-gray-400">{c.cnpjOuCpf || "—"}</td>
+                  <td className="px-2 py-1 text-gray-400">{c.cidade || "—"}</td>
+                  <td className="w-6 px-2 py-1 text-right">
+                    <button
+                      onClick={() => handleRemoveClient(i)}
+                      className="text-gray-400 hover:text-red-500"
+                      title="Remover da lista (não apaga do Supabase)"
+                    >
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <FileDropzone onFile={handleFile} label="Ou envie a planilha de Clientes" fileName={workbook?.fileName} />
@@ -201,5 +344,26 @@ export function ClientsSource({ clients, onClientsChange }: Props) {
 
       {msg && <p className="text-sm text-gray-500">{msg}</p>}
     </div>
+  );
+}
+
+function ClientField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="text-xs">
+      <div className="mb-0.5 text-gray-500">{label}</div>
+      <input
+        className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </label>
   );
 }
