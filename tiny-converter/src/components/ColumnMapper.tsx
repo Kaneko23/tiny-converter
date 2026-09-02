@@ -22,28 +22,28 @@ function previewFor(previewRows: CellValue[][], colIndex: number): string {
 
 export function ColumnMapper({ headers, previewRows, fields, mapping, onChange }: Props) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+    <div className="overflow-x-auto rounded-sm border border-line bg-card">
       <table className="w-full text-sm">
-        <thead className="bg-gray-50 text-left text-gray-500">
+        <thead className="border-b border-line text-left text-[11px] uppercase tracking-wide text-muted">
           <tr>
-            <th className="px-4 py-2 font-medium">Campo do Tiny</th>
-            <th className="px-4 py-2 font-medium">Coluna na sua planilha</th>
-            <th className="px-4 py-2 font-medium">Prévia</th>
+            <th className="px-4 py-2.5 font-semibold">Campo do Tiny</th>
+            <th className="px-4 py-2.5 font-semibold">Coluna na sua planilha</th>
+            <th className="px-4 py-2.5 font-semibold">Prévia</th>
           </tr>
         </thead>
         <tbody>
           {fields.map((f) => {
             const idx = mapping[f.key];
             return (
-              <tr key={f.key} className="border-t border-gray-100">
+              <tr key={f.key} className="border-t border-line/70">
                 <td className="px-4 py-2">
-                  <span className="font-medium text-gray-800">{f.label}</span>
-                  {f.required && <span className="ml-1 text-red-500">*</span>}
-                  {f.hint && <div className="text-xs text-gray-400">{f.hint}</div>}
+                  <span className="font-medium text-ink">{f.label}</span>
+                  {f.required && <span className="ml-1 text-brand-500">*</span>}
+                  {f.hint && <div className="text-xs text-muted">{f.hint}</div>}
                 </td>
                 <td className="px-4 py-2">
                   <select
-                    className="w-56 rounded-md border border-gray-300 px-2 py-1 text-sm"
+                    className="w-56 rounded-sm border border-line bg-card px-2 py-1 text-sm focus:border-brand-500 focus:outline-none"
                     value={idx === null || idx === undefined ? "" : idx}
                     onChange={(e) =>
                       onChange({
@@ -60,7 +60,7 @@ export function ColumnMapper({ headers, previewRows, fields, mapping, onChange }
                     ))}
                   </select>
                 </td>
-                <td className="px-4 py-2 text-gray-500">
+                <td className="px-4 py-2 text-muted">
                   {idx !== null && idx !== undefined ? previewFor(previewRows, idx) : "—"}
                 </td>
               </tr>

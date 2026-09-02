@@ -137,8 +137,8 @@ export function ProductsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-800">1. Envie a planilha de produtos</h2>
-        <p className="text-sm text-gray-500">
+        <h2 className="font-display text-xl font-semibold text-ink">1. Envie a planilha de produtos</h2>
+        <p className="text-sm text-muted">
           A planilha com Descrição, Referência, Tecido, Cores e Grade de tamanhos (ex: Mostruário).
         </p>
         <div className="mt-3">
@@ -158,10 +158,10 @@ export function ProductsPage() {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-800">2. Ligue as colunas</h2>
+              <h2 className="font-display text-xl font-semibold text-ink">2. Ligue as colunas</h2>
               <button
                 onClick={handleAutoMap}
-                className="rounded-md border border-brand-200 px-3 py-1 text-sm text-brand-600 hover:bg-brand-50"
+                className="rounded-full border border-brand-200 px-3.5 py-1 text-sm text-brand-600 hover:bg-brand-50"
               >
                 Tentar detectar automaticamente
               </button>
@@ -211,8 +211,8 @@ export function ProductsPage() {
             onChange={setNcmRows}
           />
 
-          <details className="rounded-lg border border-gray-200 bg-white p-4">
-            <summary className="cursor-pointer text-sm font-medium text-gray-700">
+          <details className="rounded-sm border border-line bg-card p-4">
+            <summary className="cursor-pointer text-sm font-medium text-ink">
               Valores padrão para os campos do Tiny (Unidade, Origem, Marca, NCM, CEST, peso, embalagem...)
             </summary>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
@@ -245,7 +245,7 @@ export function ProductsPage() {
 
           <button
             onClick={handleConvert}
-            className="rounded-md bg-brand-600 px-5 py-2.5 font-medium text-white hover:bg-brand-700"
+            className="rounded-full bg-brand-600 px-6 py-3 text-xs font-semibold uppercase tracking-wide text-paper hover:bg-brand-700"
           >
             Converter para o padrão Tiny
           </button>
@@ -254,7 +254,7 @@ export function ProductsPage() {
 
       {result && (
         <div>
-          <h2 className="mb-2 text-lg font-semibold text-gray-800">3. Resultado</h2>
+          <h2 className="mb-2 font-display text-xl font-semibold text-ink">3. Resultado</h2>
           <ResultsPanel
             result={result}
             fileLabel="planilha de produtos"
@@ -267,11 +267,11 @@ export function ProductsPage() {
               <button
                 onClick={handleSaveCatalog}
                 disabled={saving}
-                className="rounded-md border border-brand-300 px-4 py-2 text-sm text-brand-700 hover:bg-brand-50 disabled:opacity-50"
+                className="rounded-full border border-brand-300 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-brand-700 hover:bg-brand-50 disabled:opacity-50"
               >
                 {saving ? "Salvando..." : "Salvar catálogo no Supabase (para usar nos Pedidos)"}
               </button>
-              {saveMsg && <span className="text-sm text-gray-500">{saveMsg}</span>}
+              {saveMsg && <span className="text-sm text-muted">{saveMsg}</span>}
             </div>
           )}
         </div>
@@ -293,10 +293,10 @@ function LabeledInput({
 }) {
   return (
     <label className="text-sm">
-      <div className="mb-1 text-gray-500">{label}</div>
+      <div className="mb-1 text-[11px] uppercase tracking-wide text-muted">{label}</div>
       <input
         type={type}
-        className="w-full rounded-md border border-gray-300 px-2 py-1"
+        className="w-full rounded-sm border border-line bg-card px-2 py-1 focus:border-brand-500 focus:outline-none"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
@@ -317,9 +317,9 @@ function LabeledSelect({
 }) {
   return (
     <label className="text-sm sm:col-span-3">
-      <div className="mb-1 text-gray-500">{label}</div>
+      <div className="mb-1 text-[11px] uppercase tracking-wide text-muted">{label}</div>
       <select
-        className="w-full rounded-md border border-gray-300 px-2 py-1"
+        className="w-full rounded-sm border border-line bg-card px-2 py-1 focus:border-brand-500 focus:outline-none"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >

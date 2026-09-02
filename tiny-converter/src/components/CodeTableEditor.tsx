@@ -55,25 +55,25 @@ export function CodeTableEditor({ title, hint, colA, colB, rows, onChange }: Pro
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className="rounded-sm border border-line bg-card p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-medium text-gray-800">{title}</h3>
-          {hint && <p className="text-xs text-gray-400">{hint}</p>}
+          <h3 className="font-display text-base font-semibold text-ink">{title}</h3>
+          {hint && <p className="text-xs text-muted">{hint}</p>}
         </div>
         <button
           type="button"
           onClick={() => setPasteOpen((v) => !v)}
-          className="rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+          className="rounded-full border border-line px-3 py-1 text-xs font-medium text-ink hover:border-brand-300"
         >
           Colar lista
         </button>
       </div>
 
       {pasteOpen && (
-        <div className="mt-2 rounded-md bg-gray-50 p-2">
+        <div className="mt-2 rounded-sm bg-paper p-2">
           <textarea
-            className="h-24 w-full rounded-md border border-gray-300 p-2 text-sm"
+            className="h-24 w-full rounded-sm border border-line bg-card p-2 text-sm focus:border-brand-500 focus:outline-none"
             placeholder={`Uma por linha, ex:\n1, Branco\n2, Preto`}
             value={pasteText}
             onChange={(e) => setPasteText(e.target.value)}
@@ -81,7 +81,7 @@ export function CodeTableEditor({ title, hint, colA, colB, rows, onChange }: Pro
           <button
             type="button"
             onClick={applyPaste}
-            className="mt-2 rounded-md bg-brand-500 px-3 py-1 text-sm text-white hover:bg-brand-600"
+            className="mt-2 rounded-full bg-brand-600 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-paper hover:bg-brand-700"
           >
             Aplicar (substitui a tabela atual)
           </button>
@@ -89,7 +89,7 @@ export function CodeTableEditor({ title, hint, colA, colB, rows, onChange }: Pro
       )}
 
       <div className="mt-3 space-y-1">
-        <div className="grid grid-cols-[1fr_2fr_auto] gap-2 text-xs font-medium text-gray-400">
+        <div className="grid grid-cols-[1fr_2fr_auto] gap-2 text-[11px] uppercase tracking-wide text-muted">
           <span>{colA.label}</span>
           <span>{colB.label}</span>
           <span></span>
@@ -97,13 +97,13 @@ export function CodeTableEditor({ title, hint, colA, colB, rows, onChange }: Pro
         {rows.map((r, i) => (
           <div key={i} className="grid grid-cols-[1fr_2fr_auto] gap-2">
             <input
-              className="rounded-md border border-gray-300 px-2 py-1 text-sm"
+              className="rounded-sm border border-line bg-card px-2 py-1 text-sm focus:border-brand-500 focus:outline-none"
               placeholder={colA.placeholder}
               value={r.a}
               onChange={(e) => updateRow(i, "a", e.target.value)}
             />
             <input
-              className="rounded-md border border-gray-300 px-2 py-1 text-sm"
+              className="rounded-sm border border-line bg-card px-2 py-1 text-sm focus:border-brand-500 focus:outline-none"
               placeholder={colB.placeholder}
               value={r.b}
               onChange={(e) => updateRow(i, "b", e.target.value)}
@@ -111,7 +111,7 @@ export function CodeTableEditor({ title, hint, colA, colB, rows, onChange }: Pro
             <button
               type="button"
               onClick={() => removeRow(i)}
-              className="rounded-md px-2 text-gray-400 hover:bg-red-50 hover:text-red-500"
+              className="rounded-sm px-2 text-muted hover:bg-brand-50 hover:text-brand-600"
               title="Remover"
             >
               ✕
@@ -123,7 +123,7 @@ export function CodeTableEditor({ title, hint, colA, colB, rows, onChange }: Pro
       <button
         type="button"
         onClick={addRow}
-        className="mt-2 rounded-md border border-dashed border-gray-300 px-3 py-1 text-sm text-gray-500 hover:border-brand-300 hover:text-brand-600"
+        className="mt-2 rounded-full border border-dashed border-line px-3 py-1 text-sm text-muted hover:border-brand-300 hover:text-brand-600"
       >
         + adicionar linha
       </button>

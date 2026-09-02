@@ -83,8 +83,8 @@ export function OrdersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-800">1. Envie a planilha de pedidos</h2>
-        <p className="text-sm text-gray-500">
+        <h2 className="font-display text-xl font-semibold text-ink">1. Envie a planilha de pedidos</h2>
+        <p className="text-sm text-muted">
           O histórico de pedidos, com uma linha por item (referência, cor, tamanho, quantidade, valor).
         </p>
         <div className="mt-3">
@@ -107,10 +107,10 @@ export function OrdersPage() {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-800">2. Ligue as colunas</h2>
+              <h2 className="font-display text-xl font-semibold text-ink">2. Ligue as colunas</h2>
               <button
                 onClick={handleAutoMap}
-                className="rounded-md border border-brand-200 px-3 py-1 text-sm text-brand-600 hover:bg-brand-50"
+                className="rounded-full border border-brand-200 px-3.5 py-1 text-sm text-brand-600 hover:bg-brand-50"
               >
                 Tentar detectar automaticamente
               </button>
@@ -145,10 +145,10 @@ export function OrdersPage() {
 
           <ClientsSource clients={clients} onClientsChange={setClients} />
 
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <h3 className="mb-3 font-medium text-gray-800">Opções</h3>
+          <div className="rounded-sm border border-line bg-card p-4">
+            <h3 className="mb-3 font-display text-base font-semibold text-ink">Opções</h3>
             <div className="flex flex-wrap items-center gap-6">
-              <label className="flex items-center gap-2 text-sm text-gray-600">
+              <label className="flex items-center gap-2 text-sm text-ink">
                 <input
                   type="checkbox"
                   checked={incluirCondicao}
@@ -156,12 +156,12 @@ export function OrdersPage() {
                 />
                 Incluir condição/forma de pagamento nas Observações do pedido
               </label>
-              <label className="text-sm text-gray-600">
+              <label className="text-sm text-ink">
                 Ano para completar "Data Entrega" sem ano (ex: "15/04"):
                 <input
                   type="number"
                   placeholder="ex: 2027"
-                  className="ml-2 w-24 rounded-md border border-gray-300 px-2 py-1"
+                  className="ml-2 w-24 rounded-sm border border-line bg-card px-2 py-1 focus:border-brand-500 focus:outline-none"
                   value={anoPadraoEntrega}
                   onChange={(e) => setAnoPadraoEntrega(e.target.value)}
                 />
@@ -171,7 +171,7 @@ export function OrdersPage() {
 
           <button
             onClick={handleConvert}
-            className="rounded-md bg-brand-600 px-5 py-2.5 font-medium text-white hover:bg-brand-700"
+            className="rounded-full bg-brand-600 px-6 py-3 text-xs font-semibold uppercase tracking-wide text-paper hover:bg-brand-700"
           >
             Converter para o padrão Tiny
           </button>
@@ -180,7 +180,7 @@ export function OrdersPage() {
 
       {result && (
         <div>
-          <h2 className="mb-2 text-lg font-semibold text-gray-800">3. Resultado</h2>
+          <h2 className="mb-2 font-display text-xl font-semibold text-ink">3. Resultado</h2>
           <ResultsPanel
             result={result}
             fileLabel="planilha de pedidos"

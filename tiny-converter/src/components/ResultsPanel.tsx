@@ -42,13 +42,16 @@ export function ResultsPanel({ result, fileLabel, sheetName, fileBaseName, group
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         {Object.entries(result.stats).map(([k, v]) => (
-          <div key={k} className="rounded-full bg-brand-50 px-3 py-1 text-sm text-brand-700">
+          <div
+            key={k}
+            className="rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1 text-sm text-brand-700"
+          >
             <strong>{v}</strong> {k}
           </div>
         ))}
         <div className="ml-auto flex flex-wrap items-center gap-2">
           {parts.length > 1 && (
-            <span className="text-xs text-amber-600">
+            <span className="text-xs text-warn-text">
               o Tiny só aceita até ~2 MB por arquivo — dividido em {parts.length} partes
             </span>
           )}
@@ -57,31 +60,31 @@ export function ResultsPanel({ result, fileLabel, sheetName, fileBaseName, group
               key={i}
               onClick={() => handleDownloadPart(i)}
               disabled={result.rows.length === 0}
-              className="rounded-md bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-40"
+              className="rounded-full bg-brand-600 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-paper hover:bg-brand-700 disabled:opacity-40"
             >
-              {parts.length > 1 ? `Baixar parte ${i + 1} de ${parts.length}` : `Baixar ${fileLabel} (.xlsx)`}
+              {parts.length > 1 ? `Baixar parte ${i + 1} de ${parts.length}` : `Baixar ${fileLabel}`}
             </button>
           ))}
           {parts.length === 0 && (
             <button
               disabled
-              className="rounded-md bg-brand-500 px-4 py-2 text-sm font-medium text-white opacity-40"
+              className="rounded-full bg-brand-600 px-5 py-2 text-xs font-semibold uppercase tracking-wide text-paper opacity-40"
             >
-              Baixar {fileLabel} (.xlsx)
+              Baixar {fileLabel}
             </button>
           )}
         </div>
       </div>
 
       {result.warnings.length > 0 && (
-        <details className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          <summary className="cursor-pointer font-medium">
+        <details className="rounded-sm border border-warn-border bg-warn-bg p-3 text-sm text-warn-text">
+          <summary className="cursor-pointer font-semibold">
             {result.warnings.length} aviso(s) — clique para ver
           </summary>
           <ul className="mt-2 max-h-64 space-y-1 overflow-y-auto">
             {result.warnings.map((w, i) => (
               <li key={i}>
-                <span className="text-amber-500">linha {w.rowIndex}:</span> {w.message}
+                <span className="font-semibold">linha {w.rowIndex}:</span> {w.message}
               </li>
             ))}
           </ul>
@@ -89,12 +92,12 @@ export function ResultsPanel({ result, fileLabel, sheetName, fileBaseName, group
       )}
 
       {result.rows.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-x-auto rounded-sm border border-line bg-card">
           <table className="w-full text-xs">
-            <thead className="bg-gray-50 text-left text-gray-500">
+            <thead className="border-b border-line text-left text-[11px] uppercase tracking-wide text-muted">
               <tr>
                 {previewCols.map(({ h, i }) => (
-                  <th key={i} className="whitespace-nowrap px-3 py-2 font-medium">
+                  <th key={i} className="whitespace-nowrap px-3 py-2.5 font-semibold">
                     {h}
                   </th>
                 ))}
@@ -102,9 +105,9 @@ export function ResultsPanel({ result, fileLabel, sheetName, fileBaseName, group
             </thead>
             <tbody>
               {previewRows.map((r, ri) => (
-                <tr key={ri} className="border-t border-gray-100">
+                <tr key={ri} className="border-t border-line/70">
                   {previewCols.map(({ i }) => (
-                    <td key={i} className="whitespace-nowrap px-3 py-1.5 text-gray-700">
+                    <td key={i} className="whitespace-nowrap px-3 py-1.5 text-ink">
                       {formatCell(r[i])}
                     </td>
                   ))}
@@ -113,7 +116,7 @@ export function ResultsPanel({ result, fileLabel, sheetName, fileBaseName, group
             </tbody>
           </table>
           {result.rows.length > previewRows.length && (
-            <p className="border-t border-gray-100 px-3 py-2 text-xs text-gray-400">
+            <p className="border-t border-line/70 px-3 py-2 text-xs text-muted">
               mostrando {previewRows.length} de {result.rows.length} linhas
             </p>
           )}

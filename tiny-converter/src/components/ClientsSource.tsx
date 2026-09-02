@@ -210,12 +210,12 @@ export function ClientsSource({ clients, onClientsChange }: Props) {
   }
 
   return (
-    <div className="space-y-3 rounded-lg border border-gray-200 bg-white p-4">
+    <div className="space-y-3 rounded-sm border border-line bg-card p-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium text-gray-800">Clientes (para CNPJ / Insc. Estadual)</h3>
-        <span className="text-xs text-gray-400">{clients.length} carregados</span>
+        <h3 className="font-display text-base font-semibold text-ink">Clientes (para CNPJ / Insc. Estadual)</h3>
+        <span className="text-xs text-muted">{clients.length} carregados</span>
       </div>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-muted">
         Usado para preencher Tipo de Pessoa, CPF/CNPJ, RG/IE e o endereço a partir do nome do cliente
         no pedido. {isSupabaseConfigured ? "Com o Supabase configurado, isso já fica salvo pro próximo pedido reconhecer sozinho." : ""}{" "}
         Se um cliente não for encontrado, essas colunas ficam em branco e um aviso aparece no resultado.
@@ -226,21 +226,21 @@ export function ClientsSource({ clients, onClientsChange }: Props) {
           <button
             onClick={loadFromDb}
             disabled={loadingDb}
-            className="rounded-md border border-brand-200 px-3 py-1 text-sm text-brand-600 hover:bg-brand-50 disabled:opacity-50"
+            className="rounded-full border border-brand-200 px-3.5 py-1 text-sm text-brand-600 hover:bg-brand-50 disabled:opacity-50"
           >
             {loadingDb ? "Carregando..." : "Recarregar clientes salvos no Supabase"}
           </button>
         )}
         <button
           onClick={() => setFormOpen((v) => !v)}
-          className="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-600 hover:bg-gray-50"
+          className="rounded-full border border-line px-3.5 py-1 text-sm text-ink hover:border-brand-300"
         >
           {formOpen ? "Fechar cadastro" : "+ Cadastrar cliente manualmente"}
         </button>
       </div>
 
       {formOpen && (
-        <div className="space-y-2 rounded-md bg-gray-50 p-3">
+        <div className="space-y-2 rounded-sm bg-paper p-3">
           <div className="grid gap-2 sm:grid-cols-3">
             <ClientField label="Nome (fantasia)*" value={draft.nomeFantasia} onChange={(v) => setDraft({ ...draft, nomeFantasia: v })} />
             <ClientField label="Razão Social" value={draft.razaoSocial ?? ""} onChange={(v) => setDraft({ ...draft, razaoSocial: v })} />
@@ -259,28 +259,28 @@ export function ClientsSource({ clients, onClientsChange }: Props) {
             <button
               onClick={handleAddClient}
               disabled={addingClient}
-              className="rounded-md bg-brand-500 px-3 py-1.5 text-sm text-white hover:bg-brand-600 disabled:opacity-50"
+              className="rounded-full bg-brand-600 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-paper hover:bg-brand-700 disabled:opacity-50"
             >
               {addingClient ? "Salvando..." : isSupabaseConfigured ? "Salvar cliente no Supabase" : "Adicionar cliente"}
             </button>
-            {addMsg && <span className="text-xs text-gray-500">{addMsg}</span>}
+            {addMsg && <span className="text-xs text-muted">{addMsg}</span>}
           </div>
         </div>
       )}
 
       {clients.length > 0 && (
-        <div className="max-h-40 overflow-y-auto rounded-md border border-gray-100">
+        <div className="max-h-40 overflow-y-auto rounded-sm border border-line">
           <table className="w-full text-xs">
             <tbody>
               {clients.map((c, i) => (
-                <tr key={`${i}-${c.nomeFantasia}`} className="border-t border-gray-100 first:border-t-0">
-                  <td className="px-2 py-1 font-medium text-gray-700">{c.nomeFantasia}</td>
-                  <td className="px-2 py-1 text-gray-400">{c.cnpjOuCpf || "—"}</td>
-                  <td className="px-2 py-1 text-gray-400">{c.cidade || "—"}</td>
+                <tr key={`${i}-${c.nomeFantasia}`} className="border-t border-line/70 first:border-t-0">
+                  <td className="px-2 py-1 font-medium text-ink">{c.nomeFantasia}</td>
+                  <td className="px-2 py-1 text-muted">{c.cnpjOuCpf || "—"}</td>
+                  <td className="px-2 py-1 text-muted">{c.cidade || "—"}</td>
                   <td className="w-6 px-2 py-1 text-right">
                     <button
                       onClick={() => handleRemoveClient(i)}
-                      className="text-gray-400 hover:text-red-500"
+                      className="text-muted hover:text-brand-600"
                       title="Remover da lista (não apaga do Supabase)"
                     >
                       ✕
@@ -310,7 +310,7 @@ export function ClientsSource({ clients, onClientsChange }: Props) {
           <div className="flex justify-end">
             <button
               onClick={() => setMapping(autoMapColumns(activeSheet.headers, CLIENT_FIELDS))}
-              className="rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+              className="rounded-full border border-line px-2.5 py-1 text-xs text-ink hover:border-brand-300"
             >
               Detectar colunas automaticamente
             </button>
@@ -325,7 +325,7 @@ export function ClientsSource({ clients, onClientsChange }: Props) {
           <div className="flex gap-2">
             <button
               onClick={applyMappingToClients}
-              className="rounded-md bg-brand-500 px-3 py-1.5 text-sm text-white hover:bg-brand-600"
+              className="rounded-full bg-brand-600 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-paper hover:bg-brand-700"
             >
               Usar esses clientes
             </button>
@@ -333,7 +333,7 @@ export function ClientsSource({ clients, onClientsChange }: Props) {
               <button
                 onClick={saveToDb}
                 disabled={savingDb}
-                className="rounded-md border border-brand-300 px-3 py-1.5 text-sm text-brand-700 hover:bg-brand-50 disabled:opacity-50"
+                className="rounded-full border border-brand-300 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-brand-700 hover:bg-brand-50 disabled:opacity-50"
               >
                 {savingDb ? "Salvando..." : "Salvar no Supabase para próxima vez"}
               </button>
@@ -342,7 +342,7 @@ export function ClientsSource({ clients, onClientsChange }: Props) {
         </>
       )}
 
-      {msg && <p className="text-sm text-gray-500">{msg}</p>}
+      {msg && <p className="text-sm text-muted">{msg}</p>}
     </div>
   );
 }
@@ -358,9 +358,9 @@ function ClientField({
 }) {
   return (
     <label className="text-xs">
-      <div className="mb-0.5 text-gray-500">{label}</div>
+      <div className="mb-0.5 text-muted">{label}</div>
       <input
-        className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm"
+        className="w-full rounded-sm border border-line bg-card px-2 py-1 text-sm focus:border-brand-500 focus:outline-none"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />

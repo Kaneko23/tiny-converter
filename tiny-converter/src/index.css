@@ -1,12 +1,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-50: #f2f7ff;
-  --color-brand-100: #e0ecff;
-  --color-brand-200: #b9d6ff;
-  --color-brand-500: #2f5496;
-  --color-brand-600: #24417a;
-  --color-brand-700: #1c3260;
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+
+  /* tinta / papel — base editorial preto-e-creme */
+  --color-ink: #18171d;
+  --color-ink-soft: #38363f;
+  --color-paper: #f4efe3;
+  --color-card: #fffdf8;
+  --color-line: #ddd4bf;
+  --color-muted: #7c745f;
+
+  /* azul-marinho — acento principal, do botão "ver coleção" */
+  --color-brand-50: #eef1f7;
+  --color-brand-100: #dbe1ee;
+  --color-brand-200: #aebcd6;
+  --color-brand-300: #7f91b7;
+  --color-brand-500: #2b3a5c;
+  --color-brand-600: #202c48;
+  --color-brand-700: #171f36;
+
+  /* avisos — tom terroso, não o âmbar de SaaS genérico */
+  --color-warn-bg: #f8ecd3;
+  --color-warn-border: #e2c48b;
+  --color-warn-text: #8a5a1f;
 }
 
 html,
@@ -17,7 +35,12 @@ body,
 
 body {
   margin: 0;
-  background: #f6f7fb;
-  color: #1a1a2e;
-  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-brand-600);
+  color: var(--color-paper);
 }

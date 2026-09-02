@@ -11,11 +11,11 @@ interface Props {
 export function SheetPicker({ sheets, selectedIndex, onSelect, headerRow, onHeaderRowChange }: Props) {
   if (sheets.length === 0) return null;
   return (
-    <div className="flex flex-wrap items-end gap-4 rounded-lg border border-gray-200 bg-white p-3">
+    <div className="flex flex-wrap items-end gap-4 rounded-sm border border-line bg-card p-3">
       <label className="text-sm">
-        <div className="mb-1 text-gray-500">Aba da planilha</div>
+        <div className="mb-1 text-[11px] uppercase tracking-wide text-muted">Aba da planilha</div>
         <select
-          className="rounded-md border border-gray-300 px-2 py-1"
+          className="rounded-sm border border-line bg-card px-2 py-1 focus:border-brand-500 focus:outline-none"
           value={selectedIndex}
           onChange={(e) => onSelect(Number(e.target.value))}
         >
@@ -27,16 +27,16 @@ export function SheetPicker({ sheets, selectedIndex, onSelect, headerRow, onHead
         </select>
       </label>
       <label className="text-sm">
-        <div className="mb-1 text-gray-500">Linha do cabeçalho</div>
+        <div className="mb-1 text-[11px] uppercase tracking-wide text-muted">Linha do cabeçalho</div>
         <input
           type="number"
           min={1}
-          className="w-24 rounded-md border border-gray-300 px-2 py-1"
+          className="w-24 rounded-sm border border-line bg-card px-2 py-1 focus:border-brand-500 focus:outline-none"
           value={headerRow}
           onChange={(e) => onHeaderRowChange(Math.max(1, Number(e.target.value) || 1))}
         />
       </label>
-      <p className="max-w-sm text-xs text-gray-400">
+      <p className="max-w-sm text-xs text-muted">
         Se sua planilha tiver títulos ou linhas em branco antes da tabela de verdade (como o
         Mostruário), ajuste aqui para a linha onde estão os nomes das colunas.
       </p>

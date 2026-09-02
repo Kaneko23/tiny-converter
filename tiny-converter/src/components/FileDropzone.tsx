@@ -30,8 +30,8 @@ export function FileDropzone({ onFile, label, fileName }: Props) {
         handleFiles(e.dataTransfer.files);
       }}
       onClick={() => inputRef.current?.click()}
-      className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
-        dragOver ? "border-brand-500 bg-brand-50" : "border-gray-300 bg-white hover:border-brand-200"
+      className={`cursor-pointer rounded-sm border-2 border-dashed p-10 text-center transition-colors ${
+        dragOver ? "border-brand-500 bg-brand-50" : "border-line bg-card hover:border-brand-300"
       }`}
     >
       <input
@@ -41,11 +41,22 @@ export function FileDropzone({ onFile, label, fileName }: Props) {
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />
-      <div className="text-3xl">📄</div>
-      <p className="mt-2 font-medium text-gray-700">
+      <svg
+        viewBox="0 0 40 40"
+        className="mx-auto h-9 w-9 text-brand-500"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M20 25V7M13.5 13.5 20 7l6.5 6.5" />
+        <path d="M8 25v4a3 3 0 0 0 3 3h18a3 3 0 0 0 3-3v-4" />
+      </svg>
+      <p className="mt-3 font-display text-base font-semibold text-ink">
         {fileName ? fileName : label ?? "Arraste a planilha aqui ou clique para escolher"}
       </p>
-      <p className="mt-1 text-sm text-gray-400">.xlsx, .xlsm, .xls ou .csv</p>
+      <p className="mt-1 text-sm text-muted">.xlsx, .xlsm, .xls ou .csv</p>
     </div>
   );
 }
