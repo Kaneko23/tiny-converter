@@ -42,6 +42,10 @@ create table if not exists size_palettes (
 create table if not exists clients (
   id uuid primary key default gen_random_uuid(),
   nome_fantasia text not null,
+  -- coluna gerada só para poder ser alvo de "on conflict" no upsert do Supabase:
+  -- o PostgREST exige uma constraint/índice único sobre uma COLUNA de verdade,
+  -- não aceita uma expressão como "lower(nome_fantasia)" direto no onConflict.
+  nome_fantasia_key text generated always as (lower(nome_fantasia)) stored,
   razao_social text,
   cnpj_ou_cpf text,
   ie text,
@@ -56,7 +60,7 @@ create table if not exists clients (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-create unique index if not exists clients_nome_fantasia_idx on clients (lower(nome_fantasia));
+create unique index if not exists clients_nome_fantasia_key_idx on clients (nome_fantasia_key);
 
 -- ─────────────────────────────────────────────────────────────────────────
 -- Catálogo de produtos (gerado pela conversão de Cadastro de Produtos).

@@ -120,11 +120,11 @@ export const TINY_ORDER_HEADERS: string[] = [
 ];
 
 export function emptyProductRow(): CellValue[] {
-  return new Array(TINY_PRODUCT_HEADERS.length).fill("");
+  return Array.from({ length: TINY_PRODUCT_HEADERS.length }, () => "");
 }
 
 export function emptyOrderRow(): CellValue[] {
-  return new Array(TINY_ORDER_HEADERS.length).fill("");
+  return Array.from({ length: TINY_ORDER_HEADERS.length }, () => "");
 }
 
 export const PRODUCT_COL = Object.fromEntries(

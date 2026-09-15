@@ -148,7 +148,7 @@ export async function upsertClients(
   }));
   const { error, count } = await supabase
     .from("clients")
-    .upsert(payload, { onConflict: "nome_fantasia", count: "exact" });
+    .upsert(payload, { onConflict: "nome_fantasia_key", count: "exact" });
   if (error) throw error;
   return count ?? payload.length;
 }
